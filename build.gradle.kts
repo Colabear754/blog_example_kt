@@ -23,6 +23,7 @@ dependencies {
     implementation("io.springfox:springfox-swagger-ui:3.0.0")
     implementation("io.springfox:springfox-boot-starter:3.0.0")
     implementation("com.oracle.ojdbc:orai18n:19.3.0.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0")
     implementation("com.fasterxml.jackson.core:jackson-core:2.14.0")
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.14.0")
