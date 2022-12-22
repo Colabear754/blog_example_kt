@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 data class BoardDTO(
     var seq: Int,
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", shape = JsonFormat.Shape.STRING)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     var reg_time: LocalDateTime,
     var category_id: Int?,
     var subject: String,
