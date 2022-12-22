@@ -3,6 +3,7 @@ package com.colabear754.blog_example_kt.config
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.config.annotation.EnableWebMvc
+import org.springframework.web.servlet.view.InternalResourceViewResolver
 import springfox.documentation.builders.ApiInfoBuilder
 import springfox.documentation.builders.PathSelectors
 import springfox.documentation.builders.RequestHandlerSelectors
@@ -26,6 +27,9 @@ class SwaggerConfig {
         .useDefaultResponseMessages(false)
         .directModelSubstitute(Timestamp::class.java, Date::class.java)
 
+    @Bean
+    fun defaultViewResolver() = InternalResourceViewResolver()
+
     private fun swaggerInfo() = ApiInfoBuilder()
         .title("블로그 API")
         .description("Kotlin Spring Boot로 작성한 블로그 API")
@@ -44,3 +48,4 @@ class SwaggerConfig {
         return produces
     }
 }
+
