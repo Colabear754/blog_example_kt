@@ -76,9 +76,9 @@ class BoardController(val boardMapper: BoardMapper) {
 
     @ApiOperation("글 작성")
     @ApiImplicitParams(
-        ApiImplicitParam(name = "subject", value = "글 제목", required = true, dataType = "string", paramType = "query"),
-        ApiImplicitParam(name = "content", value = "글 내용", required = true, dataType = "string", paramType = "query"),
-        ApiImplicitParam(name = "category_id", value = "글을 분류할 카테고리의 일련번호", dataType = "int", paramType = "query")
+        ApiImplicitParam(name = "subject", value = "글 제목", required = true),
+        ApiImplicitParam(name = "content", value = "글 내용", required = true),
+        ApiImplicitParam(name = "category_id", value = "글을 분류할 카테고리의 일련번호")
     )
     @PostMapping(value = ["/write"])
     fun write(
