@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="com.colabear754.blog_example_kt.mapper.BoardMapper">
+    <select id="getDocuments" resultType="BoardDTO">
+        select a.*
+        from (
+        select b.*, ROWNUM r
+            from (
+            select v_board.*
+            from v_board
+            <choose>
+                <when test="category_id gt 0">
+                    where CATEGORY_ID = #{category_id}
+                </when>
+                <when test="category_id lt 0">
+                    where CATEGORY_ID is null
+                </when>
+            </choose>
+            order by v_board.seq desc
+            ) b
+        ) a
+        <![CDATA[where r >= #{start} and r <= #{end}]]>
+    </select>
+
+    <select id="getDocument" resultType="BoardDTO">
+        select *
+        from V_BOARD
+        where SEQ = #{seq}
+    </select>
+
+    <select id="getDocumentCount" resultType="_int">
+        select count(*)
+        from BOARD
+        <choose>
+            <when test="category_id gt 0">
+                where CATEGORY_ID = #{category_id}
+            </when>
+            <when test="category_id lt 0">
+                where CATEGORY_ID is null
+            </when>
+        </choose>
+    </select>
+
+    <insert id="write">
+        insert into board
+        <if test="category_id == 0">
+            values (DOC_SEQ.nextval, systimestamp, null, #{subject}, #{content}, #{thumbnail}, 0)
+        </if>
+        <if test="category_id > 0">
+            values (DOC_SEQ.nextval, systimestamp, #{category_id}, #{subject}, #{content}, #{thumbnail}, 0)
+        </if>
+        <selectKey keyProperty="seq" resultType="int" order="AFTER">
+            select DOC_SEQ.currval as seq
+            from DUAL
+        </selectKey>
+    </insert>
+
+    <update id="update">
+        update board
+        <if test="category_id == 0">
+            set CATEGORY_ID = null, SUBJECT = #{subject}, CONTENT = #{content}, THUMBNAIL = #{thumbnail}
+        </if>
+        <if test="category_id > 0">
+            set CATEGORY_ID = #{category_id}, SUBJECT = #{subject}, CONTENT = #{content}, THUMBNAIL = #{thumbnail}
+        </if>
+        where SEQ = #{seq}
+    </update>
+
+    <delete id="delete">
+        delete
+        from BOARD
+        where SEQ = #{seq}
+    </delete>
+
+    <select id="isLike" resultType="_boolean">
+        select case when count(*) > 0 then 1 else 0 end result
+        from LIKE_DOCUMENT
+        where ID = #{id} and SEQ = #{seq}
+    </select>
+
+    <insert id="like">
+        insert into LIKE_DOCUMENT
+        values (#{id}, #{seq})
+    </insert>
+
+    <delete id="cancelLike">
+        delete
+        from LIKE_DOCUMENT
+        where ID = #{id} and SEQ = #{seq}
+    </delete>
+
+    <update id="increaseViewCnt">
+        update BOARD
+        set VIEW_CNT = VIEW_CNT + 1
+        where SEQ = #{seq}
+    </update>
+</mapper>
