@@ -4,13 +4,15 @@ import com.fasterxml.jackson.annotation.JsonFormat
 import java.time.LocalDateTime
 
 data class BoardDTO(
-    var seq: Int,
+    var seq: Int?,
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    var reg_time: LocalDateTime,
+    var reg_time: LocalDateTime?,
     var category_id: Int?,
     var subject: String,
     var content: String,
     var thumbnail: String?,
-    var view_cnt: Int,
-    var like_cnt: Int
-)
+    var view_cnt: Int?,
+    var like_cnt: Int?
+) {
+    constructor(content: String) : this(null, null, null, content, content, null, null, null)
+}
