@@ -15,4 +15,5 @@ data class BoardDTO(
     var like_cnt: Int?
 ) {
     constructor(content: String) : this(null, null, null, content, content, null, null, null)
+    constructor(subject: String, content: String, category_id: Int?, thumbnail: String?) : this(null, null, category_id, subject, content, thumbnail, null, null)
 }

@@ -7,11 +7,18 @@ import io.swagger.annotations.Api
 import io.swagger.annotations.ApiImplicitParam
 import io.swagger.annotations.ApiImplicitParams
 import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
+import org.apache.commons.io.FilenameUtils
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.servlet.http.HttpServletRequest
 
 @Api(tags = ["블로그 API"], description = "블로그 글 관련 API")
@@ -65,5 +72,36 @@ class BoardController(val boardMapper: BoardMapper) {
         } catch (e: Exception) {
             LikeDTO(seq, inputParams["id"] as String, boardMapper.cancelLike(inputParams), false)
         }
+    }
+
+    @ApiOperation("글 작성")
+    @ApiImplicitParams(
+        ApiImplicitParam(name = "subject", value = "글 제목", required = true, dataType = "string", paramType = "query"),
+        ApiImplicitParam(name = "content", value = "글 내용", required = true, dataType = "string", paramType = "query"),
+        ApiImplicitParam(name = "category_id", value = "글을 분류할 카테고리의 일련번호", dataType = "int", paramType = "query")
+    )
+    @PostMapping(value = ["/write"])
+    fun write(
+        @RequestParam subject: String,
+        @RequestParam content: String,
+        @RequestParam(required = false) category_id: Int?,
+        @ApiParam("업로드 할 썸네일") @RequestPart(required = false) uploadFile: MultipartFile?
+    ): BoardDTO? {
+        val path = "D:\\blog\\img\\"
+        Files.createDirectories(Paths.get(path))
+        var filename: String? = null
+
+        if (uploadFile?.isEmpty == false) {
+            val extension = FilenameUtils.getExtension(uploadFile.originalFilename)
+            val timemillis = System.currentTimeMillis()
+            val random = IntRange(10000, 99999).random()
+            filename = "${random}${timemillis}.$extension"
+
+            uploadFile.transferTo(File("${path}${filename}"))
+        }
+        val document = BoardDTO(subject, content, category_id ?: 0, filename)
+        boardMapper.write(document)
+
+        return boardMapper.getDocument(document.seq ?: 0)
     }
 }
