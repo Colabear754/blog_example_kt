@@ -1,6 +1,7 @@
 package com.colabear754.blog_example_kt.controllers
 
 import com.colabear754.blog_example_kt.domain.BoardDTO
+import com.colabear754.blog_example_kt.domain.LikeDTO
 import com.colabear754.blog_example_kt.mapper.BoardMapper
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiImplicitParam
@@ -8,8 +9,10 @@ import io.swagger.annotations.ApiImplicitParams
 import io.swagger.annotations.ApiOperation
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import javax.servlet.http.HttpServletRequest
 
 @Api(tags = ["블로그 API"], description = "블로그 글 관련 API")
 @RestController
@@ -44,5 +47,23 @@ class BoardController(val boardMapper: BoardMapper) {
     fun document(@PathVariable seq: Int): BoardDTO {
         boardMapper.increaseViewCnt(seq)
         return boardMapper.getDocument(seq) ?: BoardDTO("존재하지 않는 게시글입니다.")
+    }
+
+    @ApiOperation("글 추천")
+    @ApiImplicitParams(
+        ApiImplicitParam(name = "id", value = "추천자"),
+        ApiImplicitParam(name = "seq", value = "추천할 글 번호", required = true)
+    )
+    @PostMapping("/document/{seq}/like")
+    fun postLike(@PathVariable seq: Int, @RequestParam(required = false) id: String?, request: HttpServletRequest): LikeDTO {
+        val inputParams = mutableMapOf<String, Any>()
+        inputParams["id"] = id ?: request.remoteAddr
+        inputParams["seq"] = seq
+
+        return try {
+            LikeDTO(seq, inputParams["id"] as String, boardMapper.like(inputParams), true)
+        } catch (e: Exception) {
+            LikeDTO(seq, inputParams["id"] as String, boardMapper.cancelLike(inputParams), false)
+        }
     }
 }
