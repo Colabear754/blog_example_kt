@@ -9,8 +9,6 @@ import springfox.documentation.builders.PathSelectors
 import springfox.documentation.builders.RequestHandlerSelectors
 import springfox.documentation.spi.DocumentationType
 import springfox.documentation.spring.web.plugins.Docket
-import java.sql.Date
-import java.sql.Timestamp
 
 @Configuration
 @EnableWebMvc
@@ -25,7 +23,6 @@ class SwaggerConfig {
         .paths(PathSelectors.any())
         .build()
         .useDefaultResponseMessages(false)
-        .directModelSubstitute(Timestamp::class.java, Date::class.java)
 
     @Bean
     fun defaultViewResolver() = InternalResourceViewResolver()
