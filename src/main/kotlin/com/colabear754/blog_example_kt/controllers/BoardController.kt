@@ -12,6 +12,7 @@ import org.apache.commons.io.FilenameUtils
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
@@ -103,5 +104,49 @@ class BoardController(val boardMapper: BoardMapper) {
         boardMapper.write(document)
 
         return boardMapper.getDocument(document.seq ?: 0)
+    }
+
+    @ApiOperation("글 수정")
+    @ApiImplicitParams(
+        ApiImplicitParam(name = "seq", value = "수정할 글 번호", required = true),
+        ApiImplicitParam(name = "subject", value = "글 제목", required = true),
+        ApiImplicitParam(name = "content", value = "글 내용", required = true),
+        ApiImplicitParam(name = "category_id", value = "글을 분류할 카테고리의 일련번호")
+    )
+    @PutMapping("/update/{seq}")
+    fun update(
+        @PathVariable seq: Int,
+        @RequestParam subject: String,
+        @RequestParam content: String,
+        @RequestParam(required = false) category_id: Int?,
+        @ApiParam("업로드 할 썸네일") @RequestPart(required = false) uploadFile: MultipartFile?
+    ): BoardDTO? {
+        val document = boardMapper.getDocument(seq)
+        val path = "D:\\blog\\img\\"
+        Files.createDirectories(Paths.get(path))
+        val filename: String
+
+        if (document == null) {
+            return BoardDTO("존재하지 않는 게시글입니다.")
+        }
+
+        if (uploadFile?.isEmpty == false) {
+            val preThumbnail = File("${path}${document.thumbnail}")
+            val extension = FilenameUtils.getExtension(uploadFile.originalFilename)
+            val timemillis = System.currentTimeMillis()
+            val random = IntRange(10000, 99999).random()
+            filename = "${random}${timemillis}.$extension"
+
+            uploadFile.transferTo(File("${path}${filename}"))
+            preThumbnail.delete()
+            document.thumbnail = filename
+        }
+
+        document.subject = subject
+        document.content = content
+        document.category_id = category_id ?: 0
+        boardMapper.update(document)
+
+        return boardMapper.getDocument(seq)
     }
 }
