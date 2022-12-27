@@ -1,6 +1,7 @@
 package com.colabear754.blog_example_kt.controllers
 
 import com.colabear754.blog_example_kt.domain.BoardDTO
+import com.colabear754.blog_example_kt.domain.DeleteDTO
 import com.colabear754.blog_example_kt.domain.LikeDTO
 import com.colabear754.blog_example_kt.mapper.BoardMapper
 import io.swagger.annotations.Api
@@ -9,6 +10,7 @@ import io.swagger.annotations.ApiImplicitParams
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.apache.commons.io.FilenameUtils
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -27,6 +29,7 @@ import javax.servlet.http.HttpServletRequest
 class BoardController(val boardMapper: BoardMapper) {
     private val PAGESIZE = 6
     private val BLOCKSIZE = 10
+    private val PATH = "D:\\blog\\img\\"
 
     @ApiOperation("블로그 글 목록 조회")
     @ApiImplicitParams(
@@ -88,8 +91,7 @@ class BoardController(val boardMapper: BoardMapper) {
         @RequestParam(required = false) category_id: Int?,
         @ApiParam("업로드 할 썸네일") @RequestPart(required = false) uploadFile: MultipartFile?
     ): BoardDTO? {
-        val path = "D:\\blog\\img\\"
-        Files.createDirectories(Paths.get(path))
+        Files.createDirectories(Paths.get(PATH))
         var filename: String? = null
 
         if (uploadFile?.isEmpty == false) {
@@ -98,7 +100,7 @@ class BoardController(val boardMapper: BoardMapper) {
             val random = IntRange(10000, 99999).random()
             filename = "${random}${timemillis}.$extension"
 
-            uploadFile.transferTo(File("${path}${filename}"))
+            uploadFile.transferTo(File("${PATH}${filename}"))
         }
         val document = BoardDTO(subject, content, category_id ?: 0, filename)
         boardMapper.write(document)
@@ -122,8 +124,7 @@ class BoardController(val boardMapper: BoardMapper) {
         @ApiParam("업로드 할 썸네일") @RequestPart(required = false) uploadFile: MultipartFile?
     ): BoardDTO? {
         val document = boardMapper.getDocument(seq)
-        val path = "D:\\blog\\img\\"
-        Files.createDirectories(Paths.get(path))
+        Files.createDirectories(Paths.get(PATH))
         val filename: String
 
         if (document == null) {
@@ -131,13 +132,13 @@ class BoardController(val boardMapper: BoardMapper) {
         }
 
         if (uploadFile?.isEmpty == false) {
-            val preThumbnail = File("${path}${document.thumbnail}")
+            val preThumbnail = File("${PATH}${document.thumbnail}")
             val extension = FilenameUtils.getExtension(uploadFile.originalFilename)
             val timemillis = System.currentTimeMillis()
             val random = IntRange(10000, 99999).random()
             filename = "${random}${timemillis}.$extension"
 
-            uploadFile.transferTo(File("${path}${filename}"))
+            uploadFile.transferTo(File("${PATH}${filename}"))
             preThumbnail.delete()
             document.thumbnail = filename
         }
@@ -148,5 +149,17 @@ class BoardController(val boardMapper: BoardMapper) {
         boardMapper.update(document)
 
         return boardMapper.getDocument(seq)
+    }
+
+    @ApiOperation("글 삭제")
+    @ApiImplicitParam(name = "seq", value = "삭제할 글 번호", required = true)
+    @DeleteMapping("/document/delete/{seq}")
+    fun delete(@PathVariable seq: Int): DeleteDTO {
+        val thumbnail = boardMapper.getDocument(seq)?.thumbnail
+        if (thumbnail?.isBlank() == false) {
+            File("${PATH}${thumbnail}").delete()
+        }
+
+        return DeleteDTO(seq, boardMapper.delete(seq))
     }
 }

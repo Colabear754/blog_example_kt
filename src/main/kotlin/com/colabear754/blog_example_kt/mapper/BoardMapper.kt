@@ -10,7 +10,7 @@ interface BoardMapper {
     fun getDocumentsCount(category_id: Int): Int
     fun write(document: BoardDTO)
     fun update(document: BoardDTO): Int
-    fun delete(document: BoardDTO): Int
+    fun delete(seq: Int): Int
     fun isLike(params: Map<String, Any?>): Boolean
     fun like(params: Map<String, Any?>): Int
     fun cancelLike(params: Map<String, Any?>): Int
